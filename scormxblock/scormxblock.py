@@ -111,6 +111,7 @@ class ScormXBlock(XBlock):
     def studio_submit(self, request, suffix=''):
         self.display_name = request.params['display_name']
         self.has_score = request.params['has_score']
+        self.weight = request.params.get('weight', 1.0)
         self.icon_class = 'problem' if self.has_score == 'True' else 'video'
         if hasattr(request.params['file'], 'file'):
             file = request.params['file'].file
