@@ -158,8 +158,15 @@ class ScormXBlock(XBlock):
             if os.path.exists(path_to_file):
                 shutil.rmtree(path_to_file)
 
-            zip_file.extractall(path_to_file)
+            os.system('unzip {} -d {}'.format(default_storage.path(path), path_to_file))
+
             self.set_fields_xblock(path_to_file)
+
+            if log.level == logging.DEBUG:
+                # show ZIP file content:
+                zip_file.printdir()
+                # show extracted content tree:
+                os.system('tree {}'.format(path_to_file))
 
         return Response(json.dumps({'result': 'success'}), content_type='application/json')
 
