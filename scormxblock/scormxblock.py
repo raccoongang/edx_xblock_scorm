@@ -96,6 +96,12 @@ class ScormXBlock(XBlock):
         default=450,
         scope=Scope.settings
     )
+    popup = Boolean(
+        display_name =_("Popup"),
+        help=_("Open in a new popup window, or an iframe."),
+        default=False,
+        scope=Scope.settings
+    )
 
     has_author_view = True
 
@@ -109,7 +115,8 @@ class ScormXBlock(XBlock):
         template = self.render_template('static/html/scormxblock.html', context_html)
         frag = Fragment(template)
         frag.add_css(self.resource_string("static/css/scormxblock.css"))
-        frag.add_javascript(self.resource_string("static/js/src/scormxblock.js"))
+        js = self.render_template("static/js/src/scormxblock.js", self.get_context_student())
+        frag.add_javascript(js)
         settings = {
             'version_scorm': self.version_scorm
         }
@@ -136,6 +143,7 @@ class ScormXBlock(XBlock):
         self.width = request.params['width']
         self.height = request.params['height']
         self.has_score = request.params['has_score']
+        self.popup = request.params['popup']
         self.icon_class = 'problem' if self.has_score == 'True' else 'video'
 
         if hasattr(request.params['file'], 'file'):
@@ -252,6 +260,7 @@ class ScormXBlock(XBlock):
             'field_has_score': self.fields['has_score'],
             'field_width': self.fields['width'],
             'field_height': self.fields['height'],
+            'popup': self.fields['popup'],
             'scorm_xblock': self
         }
 

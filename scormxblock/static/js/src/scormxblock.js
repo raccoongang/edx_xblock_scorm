@@ -97,5 +97,23 @@ function ScormXBlock(runtime, element, settings) {
     } else {
       API_1484_11 = new SCORM_2004_API();
     }
+    var popupWindow = null;
+    function showPopup(params) {
+      if( popupWindow == null || popupWindow.closed){
+        popupWindow = window.open('{{ scorm_file_path }}', '{{scorm_xblock.display_name}}', params);
+      } else {
+        popupWindow.focus();
+      }
+    };
+    var width = {% if scorm_xblock.width %}{{ scorm_xblock.width }}{% else %}screen.height{% endif %};
+    var height = {{ scorm_xblock.height }};
+    var popup = {% if scorm_xblock.popup %}true{% else %}false{% endif %};
+    var params = 'width='+width+', height='+height+', top='+((screen.height-height)/2)+',left='+((screen.width-width)/2)+', resizable=yes, scrollbars=no, status=yes'
+    if (popup){
+      showPopup(params);
+      $('.scorm_launch').on( "click", function() {
+        showPopup(params);
+      })
+    }
   });
 }
