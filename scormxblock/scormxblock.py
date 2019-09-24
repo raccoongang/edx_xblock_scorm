@@ -115,11 +115,11 @@ class ScormXBlock(XBlock):
         template = self.render_template('static/html/scormxblock.html', context_html)
         frag = Fragment(template)
         frag.add_css(self.resource_string("static/css/scormxblock.css"))
-        js = self.render_template("static/js/src/scormxblock.js", self.get_context_student())
-        frag.add_javascript(js)
+        frag.add_javascript(self.resource_string("static/js/src/scormxblock.js"))
         settings = {
             'version_scorm': self.version_scorm
         }
+        settings.update(self.get_settings_student())
         frag.initialize_js('ScormXBlock', json_args=settings)
         return frag
 
@@ -278,6 +278,26 @@ class ScormXBlock(XBlock):
             'scorm_file_path': scorm_file_path,
             'completion_status': self.get_completion_status(),
             'scorm_xblock': self
+        }
+
+    def get_settings_student(self):
+        scorm_file_path = ''
+        if self.scorm_file:
+            scheme = 'https' if settings.HTTPS == 'on' else 'http'
+            scorm_file_path = '{}://{}{}'.format(
+                scheme,
+                configuration_helpers.get_value('site_domain', settings.ENV_TOKENS.get('LMS_BASE')),
+                self.scorm_file
+            )
+        return {
+            'scorm_file_path': scorm_file_path,
+            'completion_status': self.get_completion_status(),
+            'scorm_xblock': {
+                'display_name': self.display_name,
+                'width': self.width,
+                'height': self.height,
+                'popup': self.popup
+            }
         }
 
     def render_template(self, template_path, context):

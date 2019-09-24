@@ -100,20 +100,19 @@ function ScormXBlock(runtime, element, settings) {
     var popupWindow = null;
     function showPopup(params) {
       if( popupWindow == null || popupWindow.closed){
-        popupWindow = window.open('{{ scorm_file_path }}', '{{scorm_xblock.display_name}}', params);
+        popupWindow = window.open(settings.scorm_file_path, settings.scorm_xblock.display_name, params);
       } else {
         popupWindow.focus();
       }
     };
-    var width = {% if scorm_xblock.width %}{{ scorm_xblock.width }}{% else %}screen.height{% endif %};
-    var height = {{ scorm_xblock.height }};
-    var popup = {% if scorm_xblock.popup %}true{% else %}false{% endif %};
+    var width = settings.scorm_xblock.width ? settings.scorm_xblock.width : screen.height;
+    var height = settings.scorm_xblock.height;
     var params = 'width='+width+', height='+height+', top='+((screen.height-height)/2)+',left='+((screen.width-width)/2)+', resizable=yes, scrollbars=no, status=yes'
-    if (popup){
+    if (settings.scorm_xblock.popup){
       showPopup(params);
-      $('.scorm_launch').on( "click", function() {
-        showPopup(params);
-      })
     }
+    $('.scorm_launch', element).on( "click", function() {
+      showPopup(params);
+    })
   });
 }
