@@ -8,6 +8,10 @@
     <iframe class="scorm_object"
             src="{{ scorm_file_path }}"
             width="{% if scorm_xblock.width %}{{ scorm_xblock.width }}{% else %}100%{% endif %}"
-            height="{{ scorm_xblock.height }}"></iframe>
+            height="{{ scorm_xblock.height }}"
+            allow="fullscreen"
+            allowFullScreen="true"
+            webkitallowfullscreen="true"
+            mozallowfullscreen="true"></iframe>
     {% endif %}
 </div>
