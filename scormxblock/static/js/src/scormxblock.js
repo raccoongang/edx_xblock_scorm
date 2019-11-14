@@ -92,10 +92,33 @@ function ScormXBlock(runtime, element, settings) {
   };
 
   $(function ($) {
+    var popupWindow = null;
     if (settings.version_scorm == 'SCORM_12') {
       API = new SCORM_12_API();
     } else {
       API_1484_11 = new SCORM_2004_API();
     }
+
+    function showPopup(params) {
+      if( popupWindow == null || popupWindow.closed){
+        popupWindow = window.open(settings.scorm_file_path, settings.scorm_xblock.window_name, params);
+      } else {
+        popupWindow.focus();
+      }
+      document.addEventListener('keydown', function(event) {
+          if (event.key === "Escape") {
+            popupWindow.close();
+          }
+        });
+    }
+
+    var params = `width=${screen.width},
+                  height=${screen.height},
+                  resizable=yes, scrollbars=no, status=no, location=no, toolbar=no, menubar=no`;
+
+    $('.scorm_launch', element).on( "click", function() {
+      showPopup(params);
+    });
+
   });
 }
