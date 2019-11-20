@@ -1,5 +1,4 @@
 function ScormXBlock(runtime, element, settings) {
-  var $scormIframe = $("iframe", element);
 
   function SCORM_12_API(){
 
@@ -75,7 +74,7 @@ function ScormXBlock(runtime, element, settings) {
 
   var SetValue = function (cmi_element, value) {
     if (cmi_element === 'cmi.core.exit' || cmi_element === 'cmi.exit') {
-      closeFullScreenScorm();
+      $(".js-scorm-block", element).removeClass('full-screen-scorm');
     }
 
     var handlerUrl = runtime.handlerUrl( element, 'scorm_set_value');
@@ -96,14 +95,6 @@ function ScormXBlock(runtime, element, settings) {
     return "true";
   };
 
-  function closeFullScreenScorm(event) {
-    if (event === undefined || event.keyCode === 27) {
-      $scormIframe.removeClass("full-screen-scorm");
-      $(document).off('keydown', closeFullScreenScorm);
-      $($scormIframe[0].contentDocument).off('keydown', closeFullScreenScorm);
-    }
-  }
-
   $(function ($) {
     if (settings.version_scorm == 'SCORM_12') {
       API = new SCORM_12_API();
@@ -111,10 +102,9 @@ function ScormXBlock(runtime, element, settings) {
       API_1484_11 = new SCORM_2004_API();
     }
 
-    $('.scorm_launch', element).on( "click", function() {
-      $scormIframe.addClass("full-screen-scorm");
-      $(document).on('keydown', closeFullScreenScorm);
-      $($scormIframe[0].contentDocument).on('keydown', closeFullScreenScorm);
+    var $scormBlock = $(".js-scorm-block", element);
+    $('.js-button-full-screen', element).on( "click", function() {
+      $scormBlock.toggleClass("full-screen-scorm");
     });
   });
 }
