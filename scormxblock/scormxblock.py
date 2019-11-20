@@ -113,7 +113,6 @@ class ScormXBlock(XBlock):
         settings = {
             'version_scorm': self.version_scorm
         }
-        settings.update(self.get_settings_student())
         frag.initialize_js('ScormXBlock', json_args=settings)
         return frag
 
@@ -253,7 +252,7 @@ class ScormXBlock(XBlock):
             'field_has_score': self.fields['has_score'],
             'field_width': self.fields['width'],
             'field_height': self.fields['height'],
-            'scorm_xblock': self,
+            'scorm_xblock': self
         }
 
     def get_context_student(self):
@@ -271,13 +270,6 @@ class ScormXBlock(XBlock):
             'completion_status': self.get_completion_status(),
             'scorm_xblock': self
         }
-
-    def get_settings_student(self):
-        student_settings = self.get_context_student()
-        student_settings.update({'scorm_xblock': {
-            'window_name': self.display_name,
-        }})
-        return student_settings
 
     def render_template(self, template_path, context):
         template_str = self.resource_string(template_path)
