@@ -26,11 +26,12 @@ from xblock.fragment import Fragment
 _ = lambda text: text
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 SCORM_ROOT = os.path.join(settings.MEDIA_ROOT, 'scorm')
 SCORM_URL = os.path.join(settings.MEDIA_URL, 'scorm')
 
-
+@XBlock.wants('user')
 class ScormXBlock(XBlock):
 
     display_name = String(
@@ -182,6 +183,8 @@ class ScormXBlock(XBlock):
 
     @XBlock.json_handler
     def scorm_get_value(self, data, suffix=''):
+        user_service = self.runtime.service(self, 'user')
+        xb_user = user_service.get_current_user()
         name = data.get('name')
         if name in ['cmi.core.lesson_status', 'cmi.completion_status']:
             return {'value': self.lesson_status}
@@ -189,6 +192,9 @@ class ScormXBlock(XBlock):
             return {'value': self.success_status}
         elif name in ['cmi.core.score.raw', 'cmi.score.raw']:
             return {'value': self.lesson_score * 100}
+        elif name in ['cmi.learner_id', 'cmi.core.student_id']:
+            log.info('Get user data "{}"'.format(xb_user))
+            return {'value': xb_user.opt_attrs.get('edx-platform.user_id')}
         else:
             return {'value': self.data_scorm.get(name, '')}
 
