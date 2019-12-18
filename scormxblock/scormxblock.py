@@ -192,7 +192,7 @@ class ScormXBlock(XBlock):
             return {'value': self.success_status}
         elif name in ['cmi.core.score.raw', 'cmi.score.raw']:
             return {'value': self.lesson_score * 100}
-        elif name in ['cmi.learner_id', 'cmi.core.student_id']:
+        elif name in ['cmi.learner_id', 'cmi.learner_name', 'cmi.core.student_id', 'cmi.core.student_name']:
             log.info('Get user data "{}"'.format(xb_user))
             return {'value': xb_user.opt_attrs.get('edx-platform.user_id', xb_user.full_name)}
         else:
