@@ -185,6 +185,8 @@ class ScormXBlock(XBlock):
     def scorm_get_value(self, data, suffix=''):
         user_service = self.runtime.service(self, 'user')
         xb_user = user_service.get_current_user()
+        anonymous_student_id = self.runtime.anonymous_student_id;
+        student_id = self.runtime.student_id;
         name = data.get('name')
         if name in ['cmi.core.lesson_status', 'cmi.completion_status']:
             return {'value': self.lesson_status}
