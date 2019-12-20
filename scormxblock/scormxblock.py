@@ -185,21 +185,19 @@ class ScormXBlock(XBlock):
     def scorm_get_value(self, data, suffix=''):
         user_service = self.runtime.service(self, 'user')
         xb_user = user_service.get_current_user()
-        anonymous_student_id = self.runtime.anonymous_student_id
-        student_id = self.runtime.student_id
-        log.info('anonymous_student_id "{}", student_id "{}"'.format(anonymous_student_id,student_id))
         name = data.get('name')
+        log.info('Retrieve xb_user {}'.format(xb_user))
+        log.info('Retrieve anonymous student ID "{}"'.format(self.runtime.anonymous_student_id))
         if name in ['cmi.core.lesson_status', 'cmi.completion_status']:
             return {'value': self.lesson_status}
         elif name == 'cmi.success_status':
             return {'value': self.success_status}
         elif name in ['cmi.core.score.raw', 'cmi.score.raw']:
             return {'value': self.lesson_score * 100}
-        elif name in ['cmi.learner_id', 'cmi.learner_name']:
-            log.info('Get user data "{}"'.format(xb_user))
-            return {'value': xb_user.opt_attrs.get('edx-platform.user_id', xb_user.full_name)}
-        elif name in ['cmi.core.student_id', 'cmi.core.student_name']:
-            return {'value': xb_user.full_name}
+        elif name in ['cmi.learner_id', 'cmi.core.student_id']:
+            return {'value': xb_user.opt_attrs.get('edx-platform.user_id', xb_user.full_name) or self.runtime.anonymous_student_id}
+        elif name in ['cmi.learner_name', 'cmi.core.student_name']:
+            return {'value': xb_user.opt_attrs.get('edx-platform.username', xb_user.full_name)}
         else:
             return {'value': self.data_scorm.get(name, '')}
 
