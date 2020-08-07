@@ -4,31 +4,26 @@ import re
 import os
 import logging
 import pkg_resources
-import shutil
 import xml.etree.ElementTree as ET
 
 from functools import partial
-from django.conf import settings
+
+import zipfile
 from django.core.files import File
 from django.core.files.storage import default_storage
 from django.template import Context, Template
 from django.utils import timezone
 from webob import Response
-from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
 
 from xblock.core import XBlock
 from xblock.fields import Scope, String, Float, Boolean, Dict, DateTime, Integer
 from xblockutils.resources import ResourceLoader
 from web_fragments.fragment import Fragment
 
-
 # Make '_' a no-op so we can scrape strings
 _ = lambda text: text
 loader = ResourceLoader(__name__)
 log = logging.getLogger(__name__)
-
-SCORM_ROOT = os.path.join(settings.MEDIA_ROOT, 'scorm')
-SCORM_URL = os.path.join(settings.MEDIA_URL, 'scorm')
 
 
 @XBlock.needs('i18n')
@@ -98,8 +93,6 @@ class ScormXBlock(XBlock):
         scope=Scope.settings
     )
 
-    has_author_view = True
-
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""
         data = pkg_resources.resource_string(__name__, path)
@@ -134,15 +127,6 @@ class ScormXBlock(XBlock):
         frag.initialize_js('ScormStudioXBlock')
         return frag
 
-    def author_view(self, context=None):
-        html = loader.render_django_template(
-            "static/html/author_view.html",
-            context=context,
-            i18n_service=self.runtime.service(self, 'i18n')
-        )
-        frag = Fragment(html)
-        return frag
-
     @XBlock.handler
     def studio_submit(self, request, suffix=''):
         self.display_name = request.params['display_name']
@@ -154,42 +138,31 @@ class ScormXBlock(XBlock):
         if hasattr(request.params['file'], 'file'):
             scorm_file = request.params['file'].file
 
+            if default_storage.exists(self.folder_base_path):
+                log.info(
+                    'Removing previously uploaded "%s"', self.folder_base_path
+                )
+                self.recursive_delete(self.folder_base_path)
+
             # First, save scorm file in the storage for mobile clients
             self.scorm_file_meta['sha1'] = self.get_sha1(scorm_file)
             self.scorm_file_meta['name'] = scorm_file.name
             self.scorm_file_meta['path'] = path = self._file_storage_path()
             self.scorm_file_meta['last_updated'] = timezone.now().strftime(DateTime.DATETIME_FORMAT)
 
-            if default_storage.exists(path):
-                log.info('Removing previously uploaded "{}"'.format(path))
-                default_storage.delete(path)
-
             default_storage.save(path, File(scorm_file))
             self.scorm_file_meta['size'] = default_storage.size(path)
             log.info('"{}" file stored at "{}"'.format(scorm_file, path))
 
-            # Check whether SCORM_ROOT exists
-            if not os.path.exists(SCORM_ROOT):
-                os.mkdir(SCORM_ROOT)
+            # Then, extract zip file
+            with zipfile.ZipFile(scorm_file, "r") as scorm_zipfile:
+                for zipinfo in scorm_zipfile.infolist():
+                    default_storage.save(
+                        os.path.join(self.folder_path, zipinfo.filename),
+                        scorm_zipfile.open(zipinfo.filename),
+                    )
 
-            # Now unpack it into SCORM_ROOT to serve to students later
-            path_to_file = os.path.join(SCORM_ROOT, self.location.block_id)
-
-            if os.path.exists(path_to_file):
-                shutil.rmtree(path_to_file)
-
-            if hasattr(scorm_file, 'temporary_file_path'):
-                os.system('unzip {} -d {}'.format(scorm_file.temporary_file_path(), path_to_file))
-            else:
-                temporary_path = os.path.join(SCORM_ROOT, scorm_file.name)
-                temporary_zip = open(temporary_path, 'wb')
-                scorm_file.open()
-                temporary_zip.write(scorm_file.read())
-                temporary_zip.close()
-                os.system('unzip {} -d {}'.format(temporary_path, path_to_file))
-                os.remove(temporary_path)
-
-            self.set_fields_xblock(path_to_file)
+            self.set_fields_xblock()
 
         return Response(json.dumps({'result': 'success'}), content_type='application/json', charset="utf8")
 
@@ -271,12 +244,7 @@ class ScormXBlock(XBlock):
     def get_context_student(self):
         scorm_file_path = ''
         if self.scorm_file:
-            scheme = 'https' if settings.HTTPS == 'on' else 'http'
-            scorm_file_path = '{}://{}{}'.format(
-                scheme,
-                configuration_helpers.get_value('site_domain', settings.ENV_TOKENS.get('LMS_BASE')),
-                self.scorm_file
-            )
+            scorm_file_path = default_storage.url(self.scorm_file)
 
         return {
             'scorm_file_path': scorm_file_path,
@@ -289,15 +257,19 @@ class ScormXBlock(XBlock):
         template = Template(template_str)
         return template.render(Context(context))
 
-    def set_fields_xblock(self, path_to_file):
+    def set_fields_xblock(self):
         self.path_index_page = 'index.html'
+
+        imsmanifest_path = os.path.join(self.folder_path, "imsmanifest.xml")
         try:
-            tree = ET.parse('{}/imsmanifest.xml'.format(path_to_file))
+            imsmanifest_file = default_storage.open(imsmanifest_path)
         except IOError:
             pass
         else:
+            tree = ET.parse(imsmanifest_file)
+            imsmanifest_file.seek(0)
             namespace = ''
-            for node in [node for _, node in ET.iterparse('{}/imsmanifest.xml'.format(path_to_file), events=['start-ns'])]:
+            for node in [node for _, node in ET.iterparse(imsmanifest_file, events=['start-ns'])]:
                 if node[0] == '':
                     namespace = node[1]
                     break
@@ -317,7 +289,7 @@ class ScormXBlock(XBlock):
             else:
                 self.version_scorm = 'SCORM_12'
 
-        self.scorm_file = os.path.join(SCORM_URL, '{}/{}'.format(self.location.block_id, self.path_index_page))
+        self.scorm_file = os.path.join(self.folder_path, self.path_index_page)
 
     def get_completion_status(self):
         completion_status = self.lesson_status
@@ -330,14 +302,27 @@ class ScormXBlock(XBlock):
         Get file path of storage.
         """
         path = (
-            '{loc.org}/{loc.course}/{loc.block_type}/{loc.block_id}'
-            '/{sha1}{ext}'.format(
-                loc=self.location,
-                sha1=self.scorm_file_meta['sha1'],
+            '{folder_path}{ext}'.format(
+                folder_path=self.folder_path,
                 ext=os.path.splitext(self.scorm_file_meta['name'])[1]
             )
         )
         return path
+
+    @property
+    def folder_base_path(self):
+        """
+        Path to the folder where packages will be extracted.
+        """
+        return os.path.join(self.location.block_type, self.location.course, self.location.block_id)
+
+    @property
+    def folder_path(self):
+        """
+        This path needs to depend on the content of the scorm package. Otherwise,
+        served media files might become stale when the package is update.
+        """
+        return os.path.join(self.folder_base_path, self.scorm_file_meta["sha1"])
 
     def get_sha1(self, file_descriptor):
         """
@@ -367,6 +352,18 @@ class ScormXBlock(XBlock):
                 'index_page': self.path_index_page,
             }
         return {}
+
+    def recursive_delete(self, root):
+        """
+        Recursively delete the contents of a directory in the Django default storage.
+        Unfortunately, this will not delete empty folders, as the default FileSystemStorage
+        implementation does not allow it.
+        """
+        directories, files = default_storage.listdir(root)
+        for directory in directories:
+            self.recursive_delete(os.path.join(root, directory))
+        for f in files:
+            default_storage.delete(os.path.join(root, f))
 
     @staticmethod
     def workbench_scenarios():
