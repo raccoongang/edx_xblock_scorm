@@ -39,7 +39,7 @@ class ScormXBlockTests(unittest.TestCase):
         self.assertEqual(block.data_scorm, {})
         self.assertEqual(block.lesson_score, 0)
         self.assertEqual(block.weight, 1)
-        self.assertEqual(block.has_score, False)
+        self.assertTrue(block.has_score)
         self.assertEqual(block.icon_class, 'video')
         self.assertEqual(block.width, None)
         self.assertEqual(block.height, 450)
@@ -63,17 +63,25 @@ class ScormXBlockTests(unittest.TestCase):
         self.assertEqual(block.height, 450)
 
     @freeze_time("2018-05-01")
+    @mock.patch('scormxblock.ScormXBlock.recursive_delete', return_value=mock.Mock())
     @mock.patch('scormxblock.ScormXBlock.set_fields_xblock')
-    @mock.patch('scormxblock.scormxblock.shutil')
-    @mock.patch('scormxblock.scormxblock.SCORM_ROOT')
     @mock.patch('scormxblock.scormxblock.os')
     @mock.patch('scormxblock.scormxblock.zipfile')
     @mock.patch('scormxblock.scormxblock.File', return_value='call_file')
     @mock.patch('scormxblock.scormxblock.default_storage')
     @mock.patch('scormxblock.ScormXBlock._file_storage_path', return_value='file_storage_path')
     @mock.patch('scormxblock.ScormXBlock.get_sha1', return_value='sha1')
-    def test_save_scorm_zipfile(self, get_sha1, file_storage_path, default_storage, mock_file, zipfile,
-                                mock_os, SCORM_ROOT, shutil, set_fields_xblock):
+    def test_save_scorm_zipfile(
+            self,
+            get_sha1,
+            file_storage_path,
+            default_storage,
+            mock_file,
+            zipfile,
+            mock_os,
+            set_fields_xblock,
+            recursive_delete,
+    ):
         block = self.make_one()
         mock_file_object = mock.Mock()
         mock_file_object.configure_mock(name='scorm_file_name')
@@ -100,18 +108,15 @@ class ScormXBlockTests(unittest.TestCase):
 
         get_sha1.assert_called_once_with(mock_file_object)
         file_storage_path.assert_called_once_with()
-        default_storage.exists.assert_called_once_with('file_storage_path')
-        default_storage.delete.assert_called_once_with('file_storage_path')
+        default_storage.exists.assert_called_once_with('path_join')
+        recursive_delete.assert_called_once_with('path_join')
         default_storage.save.assert_called_once_with('file_storage_path', 'call_file')
         mock_file.assert_called_once_with(mock_file_object)
 
         self.assertEqual(block.scorm_file_meta, expected_scorm_file_meta)
 
         zipfile.ZipFile.assert_called_once_with(mock_file_object, 'r')
-        mock_os.path.join.assert_called_once_with(SCORM_ROOT, 'block_id')
-        mock_os.path.exists.assert_called_once_with('path_join')
-        shutil.rmtree.assert_called_once_with('path_join')
-        set_fields_xblock.assert_called_once_with('path_join')
+        set_fields_xblock.assert_called_once_with()
 
     def test_build_file_storage_path(self):
         block = self.make_one(
@@ -122,13 +127,14 @@ class ScormXBlockTests(unittest.TestCase):
 
         self.assertEqual(
             file_storage_path,
-            'org/course/block_type/block_id/sha1.html'
+            'block_type/course/block_id/sha1.html'
         )
 
     @mock.patch('scormxblock.ScormXBlock._file_storage_path', return_value='file_storage_path')
     @mock.patch('scormxblock.scormxblock.default_storage')
     def test_student_view_data(self, default_storage, file_storage_path):
         block = self.make_one(
+            scorm_file="url_zip_file",
             scorm_file_meta={'last_updated': '2018-05-01', 'size': 1234}
         )
         default_storage.configure_mock(url=mock.Mock(return_value='url_zip_file'))
@@ -142,7 +148,8 @@ class ScormXBlockTests(unittest.TestCase):
             {
                 'last_modified': '2018-05-01',
                 'scorm_data': 'url_zip_file',
-                'size': 1234
+                'size': 1234,
+                'index_page': None
             }
         )
 
