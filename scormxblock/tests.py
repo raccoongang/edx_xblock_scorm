@@ -13,6 +13,24 @@ from scormxblock import ScormXBlock
 
 @ddt
 class ScormXBlockTests(unittest.TestCase):
+    class MockZipf:
+        def __init__(self):
+            self.files = [mock.Mock(filename='foo.csv')]
+
+        def __iter__(self):
+            return iter(self.files)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            return True
+
+        def infolist(self):
+            return self.files
+
+        def open(self, *args, **kwargs):
+            return self.files[0].filename
 
     def make_one(self, **kw):
         """
@@ -63,10 +81,10 @@ class ScormXBlockTests(unittest.TestCase):
         self.assertEqual(block.height, 450)
 
     @freeze_time("2018-05-01")
-    @mock.patch('scormxblock.ScormXBlock.recursive_delete', return_value=mock.Mock())
+    @mock.patch('scormxblock.ScormXBlock.recursive_delete')
     @mock.patch('scormxblock.ScormXBlock.set_fields_xblock')
     @mock.patch('scormxblock.scormxblock.os')
-    @mock.patch('scormxblock.scormxblock.zipfile')
+    @mock.patch('scormxblock.scormxblock.zipfile.ZipFile')
     @mock.patch('scormxblock.scormxblock.File', return_value='call_file')
     @mock.patch('scormxblock.scormxblock.default_storage')
     @mock.patch('scormxblock.ScormXBlock._file_storage_path', return_value='file_storage_path')
@@ -77,7 +95,7 @@ class ScormXBlockTests(unittest.TestCase):
             file_storage_path,
             default_storage,
             mock_file,
-            zipfile,
+            mock_zipfile,
             mock_os,
             set_fields_xblock,
             recursive_delete,
@@ -87,7 +105,7 @@ class ScormXBlockTests(unittest.TestCase):
         mock_file_object.configure_mock(name='scorm_file_name')
         default_storage.configure_mock(size=mock.Mock(return_value='1234'))
         mock_os.configure_mock(path=mock.Mock(join=mock.Mock(return_value='path_join')))
-
+        mock_zipfile.return_value = ScormXBlockTests.MockZipf()
         fields = {
             'display_name': 'Test Block',
             'has_score': 'True',
@@ -110,12 +128,10 @@ class ScormXBlockTests(unittest.TestCase):
         file_storage_path.assert_called_once_with()
         default_storage.exists.assert_called_once_with('path_join')
         recursive_delete.assert_called_once_with('path_join')
-        default_storage.save.assert_called_once_with('file_storage_path', 'call_file')
+        default_storage.save.assert_any_call('file_storage_path', 'call_file')
         mock_file.assert_called_once_with(mock_file_object)
-
         self.assertEqual(block.scorm_file_meta, expected_scorm_file_meta)
-
-        zipfile.ZipFile.assert_called_once_with(mock_file_object, 'r')
+        default_storage.save.assert_any_call('path_join', 'foo.csv')
         set_fields_xblock.assert_called_once_with()
 
     def test_build_file_storage_path(self):
