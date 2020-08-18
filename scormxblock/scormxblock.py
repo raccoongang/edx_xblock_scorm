@@ -157,10 +157,11 @@ class ScormXBlock(XBlock):
             # Then, extract zip file
             with zipfile.ZipFile(scorm_file, "r") as scorm_zipfile:
                 for zipinfo in scorm_zipfile.infolist():
-                    default_storage.save(
-                        os.path.join(self.folder_path, zipinfo.filename),
-                        scorm_zipfile.open(zipinfo.filename),
-                    )
+                    if not zipinfo.filename.endswith("/"):
+                        default_storage.save(
+                            os.path.join(self.folder_path, zipinfo.filename),
+                            scorm_zipfile.open(zipinfo.filename),
+                        )
 
             self.set_fields_xblock()
 
