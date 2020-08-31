@@ -1,3 +1,4 @@
+import cStringIO
 import json
 import hashlib
 import re
@@ -149,10 +150,13 @@ class ScormXBlock(XBlock):
             with zipfile.ZipFile(scorm_file, "r") as scorm_zipfile:
                 for zipinfo in scorm_zipfile.infolist():
                     if not zipinfo.filename.endswith("/"):
+                        zip_file = cStringIO.StringIO()
+                        zip_file.write(scorm_zipfile.open(zipinfo.filename).read())
                         default_storage.save(
                             os.path.join(self.folder_path, zipinfo.filename),
-                            scorm_zipfile.open(zipinfo.filename),
+                            zip_file,
                         )
+                        zip_file.close()
 
             self.set_fields_xblock()
 
