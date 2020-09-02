@@ -6,6 +6,7 @@ import os
 import logging
 import pkg_resources
 import xml.etree.ElementTree as ET
+import mimetypes
 
 from functools import partial
 
@@ -15,6 +16,7 @@ from django.core.files.storage import default_storage
 from django.template import Context, Template
 from django.utils import timezone
 from webob import Response
+from storages.backends.s3boto import S3BotoStorage
 
 from xblock.core import XBlock
 from xblock.fields import Scope, String, Float, Boolean, Dict, DateTime, Integer
@@ -25,6 +27,24 @@ from web_fragments.fragment import Fragment
 _ = lambda text: text
 loader = ResourceLoader(__name__)
 log = logging.getLogger(__name__)
+
+
+class FileIter(object):
+    def __init__(self, _file, _type='application/octet-stream'):
+        self._file = _file
+        self.wrapper = lambda d: d
+        if _type.startswith('text'):
+            self.wrapper = lambda d: unicode(d, 'utf-8', 'replace')
+
+    def __iter__(self):
+        try:
+            while True:
+                data = self._file.read(65536)
+                if not data:
+                    return
+                yield self.wrapper(data)
+        finally:
+            self._file.close()
 
 
 @XBlock.needs('i18n')
@@ -249,13 +269,25 @@ class ScormXBlock(XBlock):
     def get_context_student(self):
         scorm_file_path = ''
         if self.scorm_file:
-            scorm_file_path = default_storage.url(self.scorm_file)
+            if isinstance(default_storage, S3BotoStorage):
+                scorm_file_path = self.runtime.handler_url(self, 's3_file', self.scorm_file)
+            else:
+                scorm_file_path = default_storage.url(self.scorm_file)
 
         return {
             'scorm_file_path': scorm_file_path,
             'completion_status': self.get_completion_status(),
             'scorm_xblock': self
         }
+
+    @XBlock.handler
+    def s3_file(self, request, suffix=''):
+        filename = suffix.split('?')[0]
+        _type, encoding = mimetypes.guess_type(filename)
+        _type = _type or 'application/octet-stream'
+        res = Response(content_type=_type)
+        res.app_iter = FileIter(default_storage.open(filename, 'rb'), _type)
+        return res
 
     def render_template(self, template_path, context):
         template_str = self.resource_string(template_path)
