@@ -7,7 +7,6 @@ import pkg_resources
 import shutil
 import xml.etree.ElementTree as ET
 
-from functools import partial
 from django.conf import settings
 from django.core.files import File
 from django.core.files.storage import default_storage
@@ -18,7 +17,7 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
 
 from xblock.core import XBlock
 from xblock.fields import Scope, String, Float, Boolean, Dict, DateTime, Integer
-from xblock.fragment import Fragment
+from web_fragments.fragment import Fragment
 
 
 
@@ -178,7 +177,7 @@ class ScormXBlock(XBlock):
 
             self.set_fields_xblock(path_to_file)
 
-        return Response(json.dumps({'result': 'success'}), content_type='application/json')
+        return Response(json.dumps({'result': 'success'}), content_type='application/json', charset="utf8")
 
     @XBlock.json_handler
     def scorm_get_value(self, data, suffix=''):
@@ -332,7 +331,10 @@ class ScormXBlock(XBlock):
         """
         block_size = 8 * 1024
         sha1 = hashlib.sha1()
-        for block in iter(partial(file_descriptor.read, block_size), ''):
+        while True:
+            block = file_descriptor.read(block_size)
+            if not block:
+                break
             sha1.update(block)
         file_descriptor.seek(0)
         return sha1.hexdigest()
