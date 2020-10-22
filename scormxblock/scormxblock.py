@@ -18,8 +18,8 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
 
 from xblock.core import XBlock
 from xblock.fields import Scope, String, Float, Boolean, Dict, DateTime, Integer
-from xblock.fragment import Fragment
 from xblockutils.resources import ResourceLoader
+from web_fragments.fragment import Fragment
 
 
 # Make '_' a no-op so we can scrape strings
@@ -191,7 +191,7 @@ class ScormXBlock(XBlock):
 
             self.set_fields_xblock(path_to_file)
 
-        return Response(json.dumps({'result': 'success'}), content_type='application/json')
+        return Response(json.dumps({'result': 'success'}), content_type='application/json', charset="utf8")
 
     @XBlock.json_handler
     def scorm_get_value(self, data, suffix=''):
@@ -345,7 +345,7 @@ class ScormXBlock(XBlock):
         """
         block_size = 8 * 1024
         sha1 = hashlib.sha1()
-        for block in iter(partial(file_descriptor.read, block_size), ''):
+        for block in iter(partial(file_descriptor.read, block_size), b''):
             sha1.update(block)
         file_descriptor.seek(0)
         return sha1.hexdigest()
