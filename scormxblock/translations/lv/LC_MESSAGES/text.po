@@ -1,0 +1,104 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-30 04:42-0400\n"
+"PO-Revision-Date: 2020-09-30 12:07+0300\n"
+"Language: lv_LV\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
+"2);\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"X-Generator: Poedit 2.4.1\n"
+
+#: scormxblock/scormxblock.py:37
+msgid "Display Name"
+msgstr "Parādāmais vārds"
+
+#: scormxblock/scormxblock.py:38
+msgid "Display name for this module"
+msgstr "Parādāmais vārds šim modulim"
+
+#: scormxblock/scormxblock.py:43
+msgid "Upload scorm file"
+msgstr "Augšupielādēt scorm failu"
+
+#: scormxblock/scormxblock.py:47
+msgid "Path to the index page in scorm file"
+msgstr "Ceļš uz indeksa lapu scorm failā"
+
+#: scormxblock/scormxblock.py:79
+msgid "Scored"
+msgstr "Vērtēts"
+
+#: scormxblock/scormxblock.py:80
+msgid ""
+"Select False if this component will not receive a numerical score from the "
+"Scorm"
+msgstr ""
+"Izvēlēties 'Nepiekrītu', ja šis elements nesaņems skaitlisku vērtējumu no "
+"Scorm"
+
+#: scormxblock/scormxblock.py:89
+msgid "Display Width (px)"
+msgstr "Parādīšanas platums (px)"
+
+#: scormxblock/scormxblock.py:90
+msgid "Width of iframe, if empty, the default 100"
+msgstr "iframe platums pēc noklusējuma ir 100%, ja tukšs"
+
+#: scormxblock/scormxblock.py:94
+msgid "Display Height (px)"
+msgstr "Parādīšanas augstums (px)"
+
+#: scormxblock/scormxblock.py:95
+msgid "Height of iframe"
+msgstr "iframe augstums"
+
+#: scormxblock/static/html/author_view.html:3
+msgid "Look in LMS"
+msgstr "Apskatīt LMS"
+
+#: scormxblock/static/html/scormxblock.html:8
+msgid "points"
+msgstr "punkti"
+
+#: scormxblock/static/html/scormxblock.html:16
+msgid "Full screen"
+msgstr "Pilnekrāna režīms"
+
+#: scormxblock/static/html/scormxblock.html:19
+msgid "Exit full screen"
+msgstr "Iziet no pilnekrāna režīma"
+
+#: scormxblock/static/html/studio.html:18
+msgid "Currently:"
+msgstr "Pašlaik:"
+
+#: scormxblock/static/html/studio.html:51
+msgid "Save"
+msgstr "Saglabāt"
+
+#: scormxblock/static/html/studio.html:54
+msgid "Cancel"
+msgstr "Atcelt"
+
+msgid "not attempted"
+msgstr ""
+
+msgid "unknown"
+msgstr ""
+
+msgid "True"
+msgstr "Piekrītu"
+
+msgid "False"
+msgstr "Nepiekrītu"

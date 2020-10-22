@@ -18,18 +18,19 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
 from xblock.core import XBlock
 from xblock.fields import Scope, String, Float, Boolean, Dict, DateTime, Integer
 from web_fragments.fragment import Fragment
-
+from xblockutils.resources import ResourceLoader
 
 
 # Make '_' a no-op so we can scrape strings
 _ = lambda text: text
-
+loader = ResourceLoader(__name__)
 log = logging.getLogger(__name__)
 
 SCORM_ROOT = os.path.join(settings.MEDIA_ROOT, 'scorm')
 SCORM_URL = os.path.join(settings.MEDIA_URL, 'scorm')
 
 
+@XBlock.needs('i18n')
 class ScormXBlock(XBlock):
 
     display_name = String(
@@ -86,7 +87,7 @@ class ScormXBlock(XBlock):
     )
     width = Integer(
         display_name=_("Display Width (px)"),
-        help=_('Width of iframe, if empty, the default 100%'),
+        help=_('Width of iframe, if empty, the default 100'),
         scope=Scope.settings
     )
     height = Integer(
@@ -105,7 +106,11 @@ class ScormXBlock(XBlock):
 
     def student_view(self, context=None):
         context_html = self.get_context_student()
-        template = self.render_template('static/html/scormxblock.html', context_html)
+        template = loader.render_django_template(
+            'static/html/scormxblock.html',
+            context=context_html,
+            i18n_service=self.runtime.service(self, 'i18n')
+        )
         frag = Fragment(template)
         frag.add_css(self.resource_string("static/css/scormxblock.css"))
         frag.add_javascript(self.resource_string("static/js/src/scormxblock.js"))
@@ -117,7 +122,11 @@ class ScormXBlock(XBlock):
 
     def studio_view(self, context=None):
         context_html = self.get_context_studio()
-        template = self.render_template('static/html/studio.html', context_html)
+        template = loader.render_django_template(
+            'static/html/studio.html',
+            context=context_html,
+            i18n_service=self.runtime.service(self, 'i18n')
+        )
         frag = Fragment(template)
         frag.add_css(self.resource_string("static/css/scormxblock.css"))
         frag.add_javascript(self.resource_string("static/js/src/studio.js"))
@@ -125,7 +134,11 @@ class ScormXBlock(XBlock):
         return frag
 
     def author_view(self, context=None):
-        html = self.render_template("static/html/author_view.html", context)
+        html = loader.render_django_template(
+            "static/html/author_view.html",
+            context=context,
+            i18n_service=self.runtime.service(self, 'i18n')
+        )
         frag = Fragment(html)
         return frag
 
