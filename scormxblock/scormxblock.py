@@ -6,6 +6,7 @@ import logging
 import pkg_resources
 import shutil
 import xml.etree.ElementTree as ET
+import zipfile
 
 from functools import partial
 from django.conf import settings
@@ -179,14 +180,16 @@ class ScormXBlock(XBlock):
                 shutil.rmtree(path_to_file)
 
             if hasattr(scorm_file, 'temporary_file_path'):
-                os.system('unzip {} -d {}'.format(scorm_file.temporary_file_path(), path_to_file))
+                with zipfile.ZipFile(scorm_file.temporary_file_path(), 'r') as zip_ref:
+                    zip_ref.extractall(path_to_file)
             else:
                 temporary_path = os.path.join(SCORM_ROOT, scorm_file.name)
                 temporary_zip = open(temporary_path, 'wb')
                 scorm_file.open()
                 temporary_zip.write(scorm_file.read())
                 temporary_zip.close()
-                os.system('unzip {} -d {}'.format(temporary_path, path_to_file))
+                with zipfile.ZipFile(temporary_path, 'r') as zip_ref:
+                    zip_ref.extractall(path_to_file)
                 os.remove(temporary_path)
 
             self.set_fields_xblock(path_to_file)
