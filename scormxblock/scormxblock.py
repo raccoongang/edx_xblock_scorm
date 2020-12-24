@@ -231,8 +231,7 @@ class ScormXBlock(XBlock):
             self.lesson_score = int(data.get('value', 0))/100.0
             self.publish_grade(set_last_updated_time)
             context.update({"lesson_score": self.lesson_score})
-        else:
-            self.data_scorm[name] = data.get('value', '')
+        self.data_scorm[name] = data.get('value', '')
 
         context.update({"completion_status": self.get_completion_status()})
         return context
@@ -243,11 +242,15 @@ class ScormXBlock(XBlock):
 
     @XBlock.json_handler
     def scorm_set_values(self, data, suffix=''):
+        is_updated = False
         if self.data_scorm.get('last_updated_time', 0) < data.get('last_updated_time'):
             for datum in data.get('data'):
                 self.set_value(datum, suffix, set_last_updated_time=False)
             self.data_scorm['last_updated_time'] = int(data.get('last_updated_time'))
-        return self.data_scorm
+            is_updated = True
+        context = self.data_scorm
+        context.update({"is_updated": is_updated})
+        return context
 
     def publish_grade(self, set_last_updated_time=True):
         if set_last_updated_time:
