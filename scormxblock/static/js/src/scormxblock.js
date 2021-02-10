@@ -100,7 +100,8 @@ function ScormXBlock(runtime, element, settings) {
     var popupWindow = null;
     function showPopup(params) {
       if( popupWindow == null || popupWindow.closed){
-        popupWindow = window.open(settings.scorm_file_path, settings.scorm_xblock.display_name, params);
+        var handlerUrl = runtime.handlerUrl( element, 'get_scorm_template');
+        popupWindow = window.open(handlerUrl, settings.scorm_xblock.display_name, params);
       } else {
         popupWindow.focus();
       }
