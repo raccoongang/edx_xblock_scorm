@@ -138,6 +138,14 @@ class ScormXBlock(XBlock):
         return frag
 
     @XBlock.handler
+    def get_scorm_template(self, request, suffix=''):
+        template = self.render_template(
+            'static/html/scorm_popup.html',
+             self.get_context_student()
+         )
+        return Response(template)
+
+    @XBlock.handler
     def studio_submit(self, request, suffix=''):
         self.display_name = request.params['display_name']
         self.width = request.params['width']
