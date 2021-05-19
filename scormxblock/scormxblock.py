@@ -209,7 +209,7 @@ class ScormXBlock(XBlock):
             self.lesson_status = data.get('value')
             if self.has_score and data.get('value') in ['completed', 'failed', 'passed']:
                 self.publish_grade()
-                context.update({"lesson_score": self.lesson_score})
+                context.update({"lesson_score": self.format_lesson_score})
 
         elif name == 'cmi.success_status':
             self.success_status = data.get('value')
@@ -217,11 +217,11 @@ class ScormXBlock(XBlock):
                 if self.success_status == 'unknown':
                     self.lesson_score = 0
                 self.publish_grade()
-                context.update({"lesson_score": self.lesson_score})
+                context.update({"lesson_score": self.format_lesson_score})
         elif name in ['cmi.core.score.raw', 'cmi.score.raw'] and self.has_score:
-            self.lesson_score = int(data.get('value', 0))/100.0
+            self.lesson_score = float(data.get('value', 0))/100.0
             self.publish_grade()
-            context.update({"lesson_score": self.lesson_score})
+            context.update({"lesson_score": self.format_lesson_score})
         else:
             self.data_scorm[name] = data.get('value', '')
 
@@ -365,6 +365,10 @@ class ScormXBlock(XBlock):
             sha1.update(block)
         file_descriptor.seek(0)
         return sha1.hexdigest()
+
+    @property
+    def format_lesson_score(self):
+        return '{:.2f}'.format(self.lesson_score)
 
     def student_view_data(self):
         """
