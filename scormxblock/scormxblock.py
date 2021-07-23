@@ -1,4 +1,7 @@
-import cStringIO
+try:
+    from cStringIO import StringIO as BytesIO
+except ImportError:
+    from io import BytesIO
 import json
 import hashlib
 import re
@@ -165,27 +168,29 @@ class ScormXBlock(XBlock):
                 )
                 self.recursive_delete(self.folder_base_path)
 
-            # First, save scorm file in the storage for mobile clients
             self.scorm_file_meta['sha1'] = self.get_sha1(scorm_file)
             self.scorm_file_meta['name'] = scorm_file.name
             self.scorm_file_meta['path'] = path = self._file_storage_path()
             self.scorm_file_meta['last_updated'] = timezone.now().strftime(DateTime.DATETIME_FORMAT)
 
-            default_storage.save(path, File(scorm_file))
-            self.scorm_file_meta['size'] = default_storage.size(path)
-            log.info('"{}" file stored at "{}"'.format(scorm_file, path))
-
-            # Then, extract zip file
+            # First, extract zip file
             with zipfile.ZipFile(scorm_file, "r") as scorm_zipfile:
                 for zipinfo in scorm_zipfile.infolist():
                     if not zipinfo.filename.endswith("/"):
-                        zip_file = cStringIO.StringIO()
+                        zip_file = BytesIO()
                         zip_file.write(scorm_zipfile.open(zipinfo.filename).read())
                         default_storage.save(
                             os.path.join(self.folder_path, zipinfo.filename),
                             zip_file,
                         )
                         zip_file.close()
+
+            scorm_file.seek(0)
+
+            # Then, save scorm file in the storage for mobile clients
+            default_storage.save(path, File(scorm_file))
+            self.scorm_file_meta['size'] = default_storage.size(path)
+            log.info('"{}" file stored at "{}"'.format(scorm_file, path))
 
             self.set_fields_xblock()
 
