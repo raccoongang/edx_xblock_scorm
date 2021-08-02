@@ -106,6 +106,7 @@ class ScormXBlock(XBlock):
         data = pkg_resources.resource_string(__name__, path)
         return data.decode("utf8")
 
+    @XBlock.supports("multi_device")
     def student_view(self, context=None):
         context_html = self.get_context_student()
         template = loader.render_django_template(
@@ -381,9 +382,14 @@ class ScormXBlock(XBlock):
         Make sure to include `student_view_data=scormxblock` to URL params in the request.
         """
         if self.scorm_file and self.scorm_file_meta:
+
+            scorm_data = default_storage.url(self._file_storage_path())
+            if not scorm_data.startswith('http'):
+                scorm_data = '{}{}'.format(settings.LMS_ROOT_URL, scorm_data)
+
             return {
                 'last_modified': self.scorm_file_meta.get('last_updated', ''),
-                'scorm_data': default_storage.url(self._file_storage_path()),
+                'scorm_data': scorm_data,
                 'size': self.scorm_file_meta.get('size', 0),
                 'index_page': self.path_index_page,
             }
