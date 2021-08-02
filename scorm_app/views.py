@@ -45,7 +45,7 @@ class SyncXBlockData(views.APIView):
                 factory = RequestFactory()
                 data = json.dumps(scorm)
 
-                scorm_request = factory.post(reverse('mobile_xblock_sync:set_values'), data,
+                scorm_request = factory.post(reverse('scorm_app:set_values'), data,
                                              content_type='application/json')
                 scorm_request.user = user
                 scorm_request.session = request.session
