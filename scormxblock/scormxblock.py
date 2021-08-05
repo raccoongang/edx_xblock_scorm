@@ -244,10 +244,10 @@ class ScormXBlock(XBlock):
     @XBlock.json_handler
     def scorm_set_values(self, data, suffix=''):
         is_updated = False
-        if self.data_scorm.get('last_updated_time', 0) < data.get('last_updated_time'):
+        if self.data_scorm.get('last_updated_time', 0) < data.get('last_updated_time', 0):
             for datum in data.get('data'):
                 self.set_value(datum, suffix, set_last_updated_time=False)
-            self.data_scorm['last_updated_time'] = int(data.get('last_updated_time'))
+            self.data_scorm['last_updated_time'] = int(data.get('last_updated_time', 0))
             is_updated = True
         context = self.data_scorm
         context.update({"is_updated": is_updated})
