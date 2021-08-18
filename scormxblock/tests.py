@@ -130,9 +130,8 @@ class ScormXBlockTests(unittest.TestCase):
         recursive_delete.assert_called_once_with('path_join')
         default_storage.save.assert_any_call('file_storage_path', 'call_file')
         mock_file.assert_called_once_with(mock_file_object)
-        self.assertEqual(block.scorm_file_meta, expected_scorm_file_meta)
-        default_storage.save.assert_any_call('path_join', 'foo.csv')
         set_fields_xblock.assert_called_once_with()
+        self.assertEqual(block.scorm_file_meta, expected_scorm_file_meta)
 
     def test_build_file_storage_path(self):
         block = self.make_one(
@@ -180,7 +179,7 @@ class ScormXBlockTests(unittest.TestCase):
         block = self.make_one(has_score=True)
 
         response = block.scorm_set_value(
-            mock.Mock(method="POST", body=json.dumps(value))
+            mock.Mock(method="POST", body=json.dumps(value).encode())
         )
 
         publish_grade.assert_called_once_with()
@@ -190,10 +189,9 @@ class ScormXBlockTests(unittest.TestCase):
             self.assertEqual(block.success_status, value['value'])
         else:
             self.assertEqual(block.lesson_status, value['value'])
-
         self.assertEqual(
             response.json,
-            {'completion_status': 'completion_status', 'lesson_score': 0, 'result': 'success'}
+            {'completion_status': 'completion_status', 'lesson_score': '0.00', 'result': 'success'}
         )
 
     @mock.patch('scormxblock.ScormXBlock.get_completion_status', return_value='completion_status')
@@ -205,7 +203,7 @@ class ScormXBlockTests(unittest.TestCase):
         block = self.make_one(has_score=True)
 
         response = block.scorm_set_value(
-            mock.Mock(method="POST", body=json.dumps(value))
+            mock.Mock(method="POST", body=json.dumps(value).encode())
         )
 
         get_completion_status.assert_called_once_with()
@@ -214,7 +212,7 @@ class ScormXBlockTests(unittest.TestCase):
 
         self.assertEqual(
             response.json,
-            {'completion_status': 'completion_status', 'lesson_score': 0.2, 'result': 'success'}
+            {'completion_status': 'completion_status', 'lesson_score': '0.20', 'result': 'success'}
         )
 
     @mock.patch('scormxblock.ScormXBlock.get_completion_status', return_value='completion_status')
@@ -227,7 +225,7 @@ class ScormXBlockTests(unittest.TestCase):
         block = self.make_one(has_score=True)
 
         response = block.scorm_set_value(
-            mock.Mock(method="POST", body=json.dumps(value))
+            mock.Mock(method="POST", body=json.dumps(value).encode())
         )
 
         get_completion_status.assert_called_once_with()
@@ -248,7 +246,7 @@ class ScormXBlockTests(unittest.TestCase):
         block = self.make_one(lesson_status='status', success_status='status')
 
         response = block.scorm_get_value(
-            mock.Mock(method="POST", body=json.dumps(value))
+            mock.Mock(method="POST", body=json.dumps(value).encode())
         )
 
         self.assertEqual(response.json, {'value': 'status'})
@@ -261,7 +259,7 @@ class ScormXBlockTests(unittest.TestCase):
         block = self.make_one(lesson_score=0.2)
 
         response = block.scorm_get_value(
-            mock.Mock(method="POST", body=json.dumps(value))
+            mock.Mock(method="POST", body=json.dumps(value).encode())
         )
 
         self.assertEqual(response.json, {'value': 20})
@@ -277,7 +275,7 @@ class ScormXBlockTests(unittest.TestCase):
         )
 
         response = block.scorm_get_value(
-            mock.Mock(method="POST", body=json.dumps(value))
+            mock.Mock(method="POST", body=json.dumps(value).encode())
         )
 
         self.assertEqual(response.json, {'value': block.data_scorm[value['name']]})

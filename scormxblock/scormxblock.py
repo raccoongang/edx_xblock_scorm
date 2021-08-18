@@ -19,7 +19,7 @@ from django.core.files.storage import default_storage
 from django.template import Context, Template
 from django.utils import timezone
 from webob import Response
-from storages.backends.s3boto import S3BotoStorage
+from storages.backends.s3boto3 import S3Boto3Storage
 
 from xblock.core import XBlock
 from xblock.fields import Scope, String, Float, Boolean, Dict, DateTime, Integer
@@ -37,7 +37,7 @@ class FileIter(object):
         self._file = _file
         self.wrapper = lambda d: d
         if _type.startswith('text'):
-            self.wrapper = lambda d: unicode(d, 'utf-8', 'replace')
+            self.wrapper = lambda d: d.decode('utf-8', 'replace')
 
     def __iter__(self):
         try:
@@ -179,9 +179,22 @@ class ScormXBlock(XBlock):
                     if not zipinfo.filename.endswith("/"):
                         zip_file = BytesIO()
                         zip_file.write(scorm_zipfile.open(zipinfo.filename).read())
+                        zip_file.seek(0)
+                        filename = os.path.join(self.folder_path, zipinfo.filename)
+
+                        content = File(zip_file, os.path.join(self.folder_path, zipinfo.filename))
+                        _type, encoding = mimetypes.guess_type(filename)
+                        _type = _type or 'application/octet-stream'
+
+                        # S3boto3 sometimes try to add content_type in bytes if doesn't exist,
+                        # so we are do it for prevent ParamValidationError
+                        if isinstance(_type, bytes):
+                            _type = _type.decode('utf-8')
+                        content.content_type = _type
+
                         default_storage.save(
-                            os.path.join(self.folder_path, zipinfo.filename),
-                            zip_file,
+                            filename,
+                            content,
                         )
                         zip_file.close()
 
@@ -274,7 +287,7 @@ class ScormXBlock(XBlock):
     def get_context_student(self):
         scorm_file_path = ''
         if self.scorm_file:
-            if isinstance(default_storage, S3BotoStorage):
+            if isinstance(default_storage, S3Boto3Storage):
                 scorm_file_path = self.runtime.handler_url(self, 's3_file', self.scorm_file)
             else:
                 scorm_file_path = default_storage.url(self.scorm_file)
@@ -290,6 +303,11 @@ class ScormXBlock(XBlock):
         filename = suffix.split('?')[0]
         _type, encoding = mimetypes.guess_type(filename)
         _type = _type or 'application/octet-stream'
+
+        # webob can`t parse content_type if it will be 'byte', so the next lines do it for them
+        if isinstance(_type, bytes):
+            _type = _type.decode('utf-8')
+
         res = Response(content_type=_type)
         res.app_iter = FileIter(default_storage.open(filename, 'rb'), _type)
         return res
