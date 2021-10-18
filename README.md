@@ -22,9 +22,14 @@ MEDIA_ROOT = ENV_TOKENS.get('MEDIA_ROOT', '/edx/var/edxapp/media/')
 MEDIA_URL = ENV_TOKENS.get('MEDIA_URL', '/media/')
 ```
 
+Note: if you use S3Boto3 as default_storage please add X-Frame options to ```lms.yml``` for allow scorm files play in iframe:
+```
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+```
+
 # Usage
 * Add `scormxblock` to the list of advanced modules in the advanced settings of a course.
-* Add a `scorm` component to your Unit. 
+* Add a `scorm` component to your Unit.
 * Upload a zip file containint your content package.  The `imsmanifest.xml` file must be at the root of the zipped package (i.e., make sure you don't have an additional directory at the root of the Zip archive which can handle if e.g., you select an entire folder and use Mac OS X's compress feature).
 * Publish your content as usual.
 
