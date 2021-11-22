@@ -32,6 +32,7 @@ SCORM_URL = os.path.join(settings.MEDIA_URL, 'scorm')
 
 
 @XBlock.needs('i18n')
+@XBlock.wants('user')
 class ScormXBlock(XBlock):
 
     display_name = String(
@@ -196,8 +197,14 @@ class ScormXBlock(XBlock):
     @XBlock.json_handler
     def scorm_get_value(self, data, suffix=''):
         name = data.get('name')
+        user_service = self.runtime.service(self, 'user')
+        xb_user = user_service.get_current_user()
         if name in ['cmi.core.lesson_status', 'cmi.completion_status']:
             return {'value': self.lesson_status}
+        elif name == 'cmi.core.student_id':
+            return {'value': xb_user.opt_attrs.get('edx-platform.user_id')}
+        elif name == 'cmi.core.student_name':
+            return {'value': xb_user.opt_attrs.get('edx-platform.username')}
         elif name == 'cmi.success_status':
             return {'value': self.success_status}
         elif name in ['cmi.core.score.raw', 'cmi.score.raw']:
