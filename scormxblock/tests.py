@@ -4,7 +4,7 @@ import json
 import mock
 import unittest
 
-from ddt import ddt, data
+from ddt import ddt, data, unpack
 from freezegun import freeze_time
 from xblock.field_data import DictFieldData
 
@@ -19,7 +19,9 @@ class ScormXBlockTests(unittest.TestCase):
         Creates a ScormXBlock for testing purpose.
         """
         field_data = DictFieldData(kw)
-        block = ScormXBlock(mock.Mock(), field_data, mock.Mock())
+        runtime = kw.pop('runtime', mock.Mock())
+        
+        block = ScormXBlock(runtime, field_data, mock.Mock())
         block.location = mock.Mock(
             block_id='block_id',
             org='org',
@@ -260,3 +262,26 @@ class ScormXBlockTests(unittest.TestCase):
         )
 
         self.assertEqual(response.json, {'value': block.data_scorm[value['name']]})
+    
+    @data(
+        ({'name': 'cmi.core.student_id'}, 'edx-platform.user_id', 23),
+        ({'name': 'cmi.core.student_name'}, 'edx-platform.username', 'supername')
+    )
+    @unpack
+    def test_scorm_get_student_data(self, request_data, key, value):
+        service_user_mock = mock.Mock()
+        current_user_mock = mock.Mock()
+        current_user_mock.opt_attrs = {
+            key : value
+        }
+        service_user_mock.configure_mock(**{'get_current_user.return_value': current_user_mock})
+
+        runtime = mock.Mock()
+        runtime.service.return_value = service_user_mock
+
+        block = self.make_one(runtime=runtime)
+
+        response = block.scorm_get_value(
+            mock.Mock(method="POST", body=json.dumps(request_data))
+        )
+        self.assertEqual(response.json, {'value': value})

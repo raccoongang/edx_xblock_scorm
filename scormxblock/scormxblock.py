@@ -199,6 +199,7 @@ class ScormXBlock(XBlock):
         name = data.get('name')
         user_service = self.runtime.service(self, 'user')
         xb_user = user_service.get_current_user()
+
         if name in ['cmi.core.lesson_status', 'cmi.completion_status']:
             return {'value': self.lesson_status}
         elif name == 'cmi.core.student_id':
