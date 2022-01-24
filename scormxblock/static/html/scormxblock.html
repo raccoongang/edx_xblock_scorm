@@ -1,6 +1,20 @@
 {% load i18n %}
 
 <div class="scormxblock_block">
+    <div class="scorm-structure">
+        <h3>Block Structure</h3>
+        <ul>
+            {% for section in scorm_xblock.scorm_structure %}
+                <li>{{ section.title }}</li>
+                <ul>
+                    {% for unit in section.units  %}
+                        <li data-scorm-link="{{ unit.link }}">{{ unit.text }}</li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+        </ul>
+    </div>
+
     {% if scorm_file_path %}
 
     {% if scorm_xblock.has_score %}
