@@ -107,4 +107,64 @@ function ScormXBlock(runtime, element, settings) {
       $scormBlock.toggleClass("full-screen-scorm");
     });
   });
+
+  const $links = $('.scorm-structure-navigation-body-link'),
+        $closeMenu = $('.close-navigation'),
+        $activeClass = 'current';
+  let linkIndex = 1,
+      linkToShow = $links.eq(linkIndex - 1).attr('href');
+
+  $closeMenu.on('click', function () {
+    $(this).toggleClass('hide');
+    $(this).hasClass('hide') ? $closeMenu.text(gettext('Show menu')) : $closeMenu.text(gettext('Close menu'));
+    $('.scorm-structure').toggle();
+  });
+
+  $('.scorm-structure-navigation-head').on('click', function () {
+    $(this).next().slideToggle();
+  });
+
+  $links.each(function (i) {
+    $(this).attr('data-id', ++i);
+  });
+
+  showLinks(linkIndex, linkToShow);
+
+  function showLinks(n, src) {
+    $('.scorm_object').attr('src', src);
+    $links.each(function () {
+      $(this).removeClass($activeClass);
+    });
+    $links.eq(n - 1).addClass($activeClass);
+  }
+
+  function plusLinks(n) {
+    let currentLink = $(`.${$activeClass}`).attr('data-id'),
+        currentID = parseInt(currentLink),
+        nextLinkID = currentID += n;
+
+    if (nextLinkID > $links.length) {
+      nextLinkID = 1;
+    } else if (nextLinkID < 1) {
+      nextLinkID = $links.length;
+    }
+
+    $(`.${$activeClass}`).closest($('.scorm-structure-navigation-body')).css('display', 'block');
+    const nextLinkSrc = $links.eq(nextLinkID - 1).attr('href');
+    showLinks(nextLinkID, nextLinkSrc);
+  }
+
+  $('.link-prev').on('click', () => plusLinks(-1));
+  $('.link-next').on('click', () => plusLinks(1));
+  $('.link-first').on('click', () => plusLinks($links.length));
+  $('.link-last').on('click', () => plusLinks(-$links.length));
+
+  $links.each(function () {
+    $(this).on('click', (e) => {
+      e.preventDefault();
+      const linkSrc = $(this).attr('href'),
+          ID = $(this).attr('data-id');
+      showLinks(ID, linkSrc);
+    });
+  });
 }

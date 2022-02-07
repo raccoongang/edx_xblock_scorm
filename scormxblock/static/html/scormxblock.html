@@ -1,14 +1,36 @@
 {% load i18n %}
-
+<button class="close-navigation">{% trans "Close menu" %}</button>
+<button class="js-button-full-screen full-screen-on">{% trans "Full screen" %}</button>
 <div class="scormxblock_block">
     <div class="scorm-structure">
-        <h3>Block Structure</h3>
-        <ul>
+        <ul class="scorm-structure-navigation">
             {% for section in scorm_xblock.scorm_structure %}
-                <li>{{ section.title }}</li>
-                <ul>
+                <li class="scorm-structure-navigation-head">
+                    <svg class="icon-arrow" xmlns="http://www.w3.org/2000/svg" width="4.364" height="8" viewBox="0 0 4.364 8">
+                        <path d="M4,4,8,8.364H0Z" transform="translate(8.364) rotate(90)" fill="#b0b0b0"></path>
+                    </svg>
+                    <svg class="icon-folder" xmlns="http://www.w3.org/2000/svg" width="19" height="19" x="0px" y="0px"
+                         viewBox="0 0 317.826 317.826" xml:space="preserve">
+	                      <polygon style="fill: #004781;" points="260.32,95.194 260.32,134.194 57.5,134.194 7.5,265.194 7.5,52.634 133.91,52.634
+		                        153.91,95.194"/>
+                        <g>
+                            <polygon style="fill: #0072ce;" points="310.32,134.194 260.32,265.194 7.5,265.194 57.5,134.194"/>
+                            <path style="fill:#333;" d="M310.32,126.693h-42.5v-31.5c0-4.142-3.358-7.5-7.5-7.5H158.672l-17.974-38.25
+                              c-1.236-2.63-3.881-4.31-6.788-4.31H7.5c-4.142,0-7.5,3.358-7.5,7.5v212.56c0,4.092,3.335,7.501,7.504,7.501
+                              c0.004,0,0.008-0.001,0.013-0.001H260.32c3.11,0,5.897-1.92,7.007-4.826l50-131C319.2,131.962,315.569,126.693,310.32,126.693z
+                               M15,60.134h114.148l17.974,38.25c1.236,2.63,3.881,4.31,6.788,4.31h98.91v24H57.5c-3.11,0-5.898,1.92-7.007,4.826L15,224.511
+                              V60.134z M255.155,257.693H18.39l44.275-116c10.806,0,225.962,0,236.765,0L255.155,257.693z"/>
+	                      </g>
+                    </svg>
+                    {{ section.title }}
+                </li>
+                <ul class="scorm-structure-navigation-body">
                     {% for unit in section.units  %}
-                        <li data-scorm-link="{{ unit.link }}">{{ unit.text }}</li>
+                        <li>
+                            <a class="scorm-structure-navigation-body-link" href="{{ unit.link }}">
+                                {{ unit.text }}
+                            </a>
+                        </li>
                     {% endfor %}
                 </ul>
             {% endfor %}
@@ -17,18 +39,8 @@
 
     {% if scorm_file_path %}
 
-    {% if scorm_xblock.has_score %}
-    <p>
-        (<span class="lesson_score">{{ scorm_xblock.format_lesson_score }}</span>/{{ scorm_xblock.weight }} {% trans "points" %})
-        <span class="completion_status">{% trans completion_status %}</span>
-    </p>
-    {% endif %}
-
     <div class="js-scorm-block">
         <div class="scorm_button">
-            <button class="js-button-full-screen full-screen-on">
-                {% trans "Full screen" %}
-            </button>
             <button class="js-button-full-screen full-screen-off">
                 {% trans "Exit full screen" %}
             </button>
@@ -43,3 +55,11 @@
     {% endif %}
 
 </div>
+
+<div class="navigation-links">
+    <button class="link-first"><<</button>
+    <button class="link-prev"><</button>
+    <button class="link-next">></button>
+    <button class="link-last">>></button>
+</div>
+

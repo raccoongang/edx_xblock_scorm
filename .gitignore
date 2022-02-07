@@ -59,3 +59,7 @@ target/
 
 #Ipython Notebook
 .ipynb_checkpoints
+
+#edx_xblock_scorm
+node_modules
+package.json
