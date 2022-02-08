@@ -17,10 +17,9 @@ from webob import Response
 from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
 
 from xblock.core import XBlock
-from xblock.fields import Scope, String, Float, Boolean, Dict, DateTime, Integer
+from xblock.fields import Scope, String, Float, Boolean, Dict, DateTime, Integer, List
 from xblockutils.resources import ResourceLoader
 from web_fragments.fragment import Fragment
-
 
 # Make '_' a no-op so we can scrape strings
 _ = lambda text: text
@@ -34,7 +33,6 @@ SCORM_URL = os.path.join(settings.MEDIA_URL, 'scorm')
 @XBlock.needs('i18n')
 @XBlock.wants('user')
 class ScormXBlock(XBlock):
-
     display_name = String(
         display_name=_("Display Name"),
         help=_("Display name for this module"),
@@ -98,13 +96,16 @@ class ScormXBlock(XBlock):
         default=450,
         scope=Scope.settings
     )
+    scorm_structure = List(
+        scope=Scope.content
+    )
 
     has_author_view = True
 
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""
         data = pkg_resources.resource_string(__name__, path)
-        return data
+        return data.decode("utf8")
 
     def student_view(self, context=None):
         context_html = self.get_context_student()
@@ -232,7 +233,7 @@ class ScormXBlock(XBlock):
                 self.publish_grade()
                 context.update({"lesson_score": self.format_lesson_score})
         elif name in ['cmi.core.score.raw', 'cmi.score.raw'] and self.has_score:
-            self.lesson_score = float(data.get('value', 0))/100.0
+            self.lesson_score = float(data.get('value', 0)) / 100.0
             self.publish_grade()
             context.update({"lesson_score": self.format_lesson_score})
         else:
@@ -297,57 +298,89 @@ class ScormXBlock(XBlock):
         template = Template(template_str)
         return template.render(Context(context))
 
+    @staticmethod
+    def get_namespace_prefix(path_to_file):
+        namespace = {
+            node[0]: node[1] for _, node in ET.iterparse('{}/imsmanifest.xml'.format(path_to_file), events=['start-ns'])
+        }.get('')
+
+        return f'{{{namespace}}}' if namespace else ''
+
+    def set_scorm_version(self, schema_version):
+        is_scorm_2004 = schema_version is not None and re.match('^1.2$', schema_version.text) is None
+        self.version_scorm = 'SCORM_2004' if is_scorm_2004 else 'SCORM_12'
+
     def set_fields_xblock(self, path_to_file):
-        self.path_index_page = 'index.html'
+
         try:
             tree = ET.parse('{}/imsmanifest.xml'.format(path_to_file))
         except IOError:
-            pass
-        else:
-            namespace = ''
-            for node in [node for _, node in ET.iterparse('{}/imsmanifest.xml'.format(path_to_file), events=['start-ns'])]:
-                if node[0] == '':
-                    namespace = node[1]
-                    break
-            root = tree.getroot()
 
-            if namespace:
-                resource = root.find('{{{0}}}resources/{{{0}}}resource'.format(namespace))
-                schemaversion = root.find('{{{0}}}metadata/{{{0}}}schemaversion'.format(namespace))
-            else:
-                resource = root.find('resources/resource')
-                schemaversion = root.find('metadata/schemaversion')
+            # TODO: Needs to raise exception here.
+            self.scorm_file = self.construct_path_for_scorm_file("index.html")
+            return
 
-            if resource:
-                self.path_index_page = resource.get('href')
-            if (schemaversion is not None) and (re.match('^1.2$', schemaversion.text) is None):
-                self.version_scorm = 'SCORM_2004'
-            else:
-                self.version_scorm = 'SCORM_12'
+        root = tree.getroot()
+        prefix = self.get_namespace_prefix(path_to_file)
 
-        self.scorm_file = os.path.join(SCORM_URL, '{}/{}'.format(self.location.block_id, self.path_index_page))
+        schema_version = root.find(f'{prefix}metadata/{prefix}schemaversion')
+        organization = root.find(f'{prefix}organizations/{prefix}organization')
+
+        self.scorm_structure = self.get_scorm_structure(root, organization, prefix)
+        self.set_scorm_version(schema_version)
+
+        self.scorm_file = self.path_index_page
+
+    def construct_path_for_scorm_file(self, file):
+        return os.path.join(SCORM_URL, f'{self.location.block_id}/{file}')
+
+    def get_scorm_structure(self, root, organization, prefix):
+        structure = []
+
+        # TODO: Iterator can be used here for optimization purposes.
+        for section in organization:
+            section_info = {"units": [], "title": section[0].text}
+
+            # TODO: Iterator can be used here
+            for item in section:
+                if item.tag != f'{prefix}item':
+                    continue
+
+                content_id = item.get("identifierref")
+                item_link = root.find(f'{prefix}resources/{prefix}resource[@identifier="{content_id}"]').get('href')
+
+                link_to_file = self.construct_path_for_scorm_file(item_link)
+
+                # Not clear to do it here
+                if not self.path_index_page:
+                    self.path_index_page = link_to_file
+
+                section_info['units'].append({
+                    "text": item[0].text,
+                    "link": link_to_file,
+                })
+
+            structure.append(section_info)
+
+        return structure
 
     def get_completion_status(self):
-        completion_status = self.lesson_status
         if self.version_scorm == 'SCORM_2004' and self.success_status != 'unknown':
-            completion_status = self.success_status
-        return completion_status
+            return self.success_status
+        return self.lesson_status
 
     def _file_storage_path(self):
         """
         Get file path of storage.
         """
-        path = (
-            '{loc.org}/{loc.course}/{loc.block_type}/{loc.block_id}'
-            '/{sha1}{ext}'.format(
-                loc=self.location,
-                sha1=self.scorm_file_meta['sha1'],
-                ext=os.path.splitext(self.scorm_file_meta['name'])[1]
-            )
+        return '{loc.org}/{loc.course}/{loc.block_type}/{loc.block_id}/{sha1}{ext}'.format(
+            loc=self.location,
+            sha1=self.scorm_file_meta['sha1'],
+            ext=os.path.splitext(self.scorm_file_meta['name'])[1]
         )
-        return path
 
-    def get_sha1(self, file_descriptor):
+    @staticmethod
+    def get_sha1(file_descriptor):
         """
         Get file hex digest (fingerprint).
         """

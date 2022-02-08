@@ -107,4 +107,71 @@ function ScormXBlock(runtime, element, settings) {
       $scormBlock.toggleClass("full-screen-scorm");
     });
   });
+
+  $(function scormXblockNavigation ($) {
+    const activeClass = 'current',
+          $links = $('.scorm-structure-navigation-body-link'),
+          $closeMenu = $('.close-navigation'),
+          $defaultCurrentLink = $links.first();
+
+    function changeSource($el) {
+      $('.scorm_object').attr('src', $el.attr('src'));
+      $links.removeClass(activeClass);
+      $el.addClass(activeClass);
+      $(`.${activeClass}`).closest($('.scorm-structure-navigation-body')).css('display', 'block');
+    }
+
+    function toggleControlButtons(linkId) {
+      $('.navigation-link').prop('disabled', false);
+
+      if (linkId === 1) {
+        $('[data-move="first"], [data-move="prev"]').prop('disabled', true);
+      } else if(linkId === $links.length) {
+        $('[data-move="next"], [data-move="last"]').prop('disabled', true);
+      }
+    }
+
+    function handleControls() {
+      const currentLinkId = $('.scorm-structure-navigation-body-link').index($('.current')) + 1;
+      let nextLinkID = currentLinkId;
+
+      switch ($(this).attr('data-move')) {
+        case ('prev'):
+          nextLinkID = currentLinkId - 1;
+          break;
+        case ('next'):
+          nextLinkID = currentLinkId + 1
+          break;
+        case ('last'):
+          nextLinkID = $links.length;
+          break;
+        default:
+          nextLinkID = 1;
+      }
+      toggleControlButtons(nextLinkID);
+      changeSource($links.eq(nextLinkID - 1));
+    }
+
+    changeSource($defaultCurrentLink);
+
+    $closeMenu.on('click', function () {
+      const closeButtonText = $(this).hasClass('hide') ? gettext('Show menu') : gettext('Close menu');
+
+      $(this).toggleClass('hide');
+      $closeMenu.text(closeButtonText);
+      $('.scorm-structure').toggle();
+    });
+
+    $('.scorm-structure-navigation-head').on('click', function () {
+      $(this).toggleClass('hide');
+      $(this).next().slideToggle();
+    });
+
+    $('.navigation-link').on('click', handleControls);
+
+    $links.on('click', function (e) {
+      e.preventDefault();
+      changeSource($(this));
+    });
+  });
 }
