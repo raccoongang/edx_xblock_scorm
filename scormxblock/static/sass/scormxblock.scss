@@ -1,4 +1,6 @@
 /* CSS for ScormXBlock */
+@import "variables";
+
 .close-navigation {
     margin-bottom: 10px;
 
@@ -15,10 +17,6 @@
     text-align: center;
 }
 
-.container-fluid {
-    padding: 0 !important;
-}
-
 .full-screen-on {
     display: block;
     float: right;
@@ -28,7 +26,7 @@
     }
 }
 
-.scormxblock_block {
+.xblock .scormxblock_block {
     display: flex;
     margin-bottom: 10px;
 
@@ -46,11 +44,6 @@
 
     .scorm_object {
         border: none;
-        margin-left: 15px;
-
-        @media (max-width: 600px) {
-            margin-left: 0;
-        }
     }
 
     span.setting-input-file {
@@ -73,7 +66,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        z-index: 9999999999;
+        z-index: 9999;
         background-color: #fff;
 
         .full-screen-off {
@@ -97,7 +90,7 @@
             left: 0;
             width: 100%;
             height: calc(100% - 65px);
-            z-index: 9999999;
+            z-index: 999;
         }
     }
 
@@ -128,12 +121,14 @@
         }
 
         &-head {
-            color: #333;
-            font: 600 14px/20px Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
+            color: $scorm-text-color;
+            font-size: 14px;
+            line-height: 20px;
+            font-weight: 600;
             letter-spacing: .4px;
             cursor: pointer;
             list-style: none;
-            margin: 0 !important;
+            margin: 0;
             overflow: hidden;
             text-overflow: ellipsis;
             position: relative;
@@ -141,7 +136,7 @@
             padding-left: 4px;
 
             @media (max-width: 600px) {
-                margin-bottom: 10px !important;
+                margin-bottom: 10px;
             }
 
             &.hide .icon-arrow {
@@ -160,14 +155,14 @@
         }
 
         &-body {
-            margin: 5px 0 15px !important;
+            margin: 5px 0 15px;
 
             li {
                 list-style: none;
-                margin-bottom: 0 !important;
+                margin-bottom: 0;
 
                 @media (max-width: 600px) {
-                    margin-bottom: 10px !important;
+                    margin-bottom: 10px;
                 }
 
                 a {
@@ -176,15 +171,15 @@
                 }
 
                 a:hover {
-                    color: #0075b4 !important;
-                    text-decoration: underline !important;
+                    color: #0075b4;
+                    text-decoration: underline;
                 }
 
                 a.current {
-                    color: #333;
+                    color: $scorm-text-color;
 
                     &:hover {
-                        color: #333 !important;
+                        color: $scorm-text-color;
                     }
                 }
             }

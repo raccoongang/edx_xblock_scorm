@@ -108,63 +108,70 @@ function ScormXBlock(runtime, element, settings) {
     });
   });
 
-  const $links = $('.scorm-structure-navigation-body-link'),
-        $closeMenu = $('.close-navigation'),
-        $activeClass = 'current';
-  let linkIndex = 1,
-      linkToShow = $links.eq(linkIndex - 1).attr('href');
+  $(function scormXblockNavigation ($) {
+    const activeClass = 'current',
+          $links = $('.scorm-structure-navigation-body-link'),
+          $closeMenu = $('.close-navigation'),
+          $defaultCurrentLink = $links.first();
 
-  $closeMenu.on('click', function () {
-    $(this).toggleClass('hide');
-    $(this).hasClass('hide') ? $closeMenu.text(gettext('Show menu')) : $closeMenu.text(gettext('Close menu'));
-    $('.scorm-structure').toggle();
-  });
-
-  $('.scorm-structure-navigation-head').on('click', function () {
-    $(this).next().slideToggle();
-  });
-
-  $links.each(function (i) {
-    $(this).attr('data-id', ++i);
-  });
-
-  showLinks(linkIndex, linkToShow);
-
-  function showLinks(n, src) {
-    $('.scorm_object').attr('src', src);
-    $links.each(function () {
-      $(this).removeClass($activeClass);
-    });
-    $links.eq(n - 1).addClass($activeClass);
-  }
-
-  function plusLinks(n) {
-    let currentLink = $(`.${$activeClass}`).attr('data-id'),
-        currentID = parseInt(currentLink),
-        nextLinkID = currentID += n;
-
-    if (nextLinkID > $links.length) {
-      nextLinkID = 1;
-    } else if (nextLinkID < 1) {
-      nextLinkID = $links.length;
+    function changeSource($el) {
+      $('.scorm_object').attr('src', $el.attr('src'));
+      $links.removeClass(activeClass);
+      $el.addClass(activeClass);
+      $(`.${activeClass}`).closest($('.scorm-structure-navigation-body')).css('display', 'block');
     }
 
-    $(`.${$activeClass}`).closest($('.scorm-structure-navigation-body')).css('display', 'block');
-    const nextLinkSrc = $links.eq(nextLinkID - 1).attr('href');
-    showLinks(nextLinkID, nextLinkSrc);
-  }
+    function toggleControlButtons(linkId) {
+      $('.navigation-link').prop('disabled', false);
 
-  $('.link-prev').on('click', () => plusLinks(-1));
-  $('.link-next').on('click', () => plusLinks(1));
-  $('.link-first').on('click', () => plusLinks($links.length));
-  $('.link-last').on('click', () => plusLinks(-$links.length));
+      if (linkId === 1) {
+        $('[data-move="first"], [data-move="prev"]').prop('disabled', true);
+      } else if(linkId === $links.length) {
+        $('[data-move="next"], [data-move="last"]').prop('disabled', true);
+      }
+    }
 
-  $links.each(function () {
-    $(this).on('click', (e) => {
+    function handleControls() {
+      const currentLinkId = $('.scorm-structure-navigation-body-link').index($('.current')) + 1;
+      let nextLinkID = currentLinkId;
+
+      switch ($(this).attr('data-move')) {
+        case ('prev'):
+          nextLinkID = currentLinkId - 1;
+          break;
+        case ('next'):
+          nextLinkID = currentLinkId + 1
+          break;
+        case ('last'):
+          nextLinkID = $links.length;
+          break;
+        default:
+          nextLinkID = 1;
+      }
+      toggleControlButtons(nextLinkID);
+      changeSource($links.eq(nextLinkID - 1));
+    }
+
+    changeSource($defaultCurrentLink);
+
+    $closeMenu.on('click', function () {
+      const closeButtonText = $(this).hasClass('hide') ? gettext('Show menu') : gettext('Close menu');
+
+      $(this).toggleClass('hide');
+      $closeMenu.text(closeButtonText);
+      $('.scorm-structure').toggle();
+    });
+
+    $('.scorm-structure-navigation-head').on('click', function () {
+      $(this).toggleClass('hide');
+      $(this).next().slideToggle();
+    });
+
+    $('.navigation-link').on('click', handleControls);
+
+    $links.on('click', function (e) {
       e.preventDefault();
-      const linkSrc = $(this).attr('href'),
-          ID = $(this).attr('data-id');
-      showLinks(ID, linkSrc);
+      changeSource($(this));
     });
   });
 }
