@@ -104,7 +104,7 @@ class ScormXBlock(XBlock):
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""
         data = pkg_resources.resource_string(__name__, path)
-        return data
+        return data.decode('utf8')
 
     def student_view(self, context=None):
         context_html = self.get_context_student()
@@ -282,7 +282,7 @@ class ScormXBlock(XBlock):
             scheme = 'https' if settings.HTTPS == 'on' else 'http'
             scorm_file_path = '{}://{}{}'.format(
                 scheme,
-                configuration_helpers.get_value('site_domain', settings.ENV_TOKENS.get('LMS_BASE')),
+                configuration_helpers.get_value('site_domain', settings.LMS_BASE),
                 self.scorm_file
             )
 
