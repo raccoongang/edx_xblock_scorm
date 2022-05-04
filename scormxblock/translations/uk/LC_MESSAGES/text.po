@@ -1,0 +1,88 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-05-04 12:04-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: edx_xblock_scorm/scormxblock/scormxblock.py:57
+msgid "Display Name"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/scormxblock.py:58
+msgid "Display name for this module"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/scormxblock.py:63
+msgid "Upload scorm file"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/scormxblock.py:67
+msgid "Path to the index page in scorm file"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/scormxblock.py:99
+msgid "Scored"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/scormxblock.py:100
+msgid ""
+"Select False if this component will not receive a numerical score from the "
+"Scorm"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/scormxblock.py:109
+msgid "Display Width (px)"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/scormxblock.py:110
+msgid "Width of iframe, if empty, the default 100"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/scormxblock.py:114
+msgid "Display Height (px)"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/scormxblock.py:115
+msgid "Height of iframe"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/static/html/author_view.html:3
+msgid "Look in LMS"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/static/html/scormxblock.html:8
+msgid "points"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/static/html/scormxblock.html:16
+msgid "Full screen"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/static/html/scormxblock.html:19
+msgid "Exit full screen"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/static/html/studio.html:18
+msgid "Currently:"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/static/html/studio.html:51
+msgid "Save"
+msgstr ""
+
+#: edx_xblock_scorm/scormxblock/static/html/studio.html:54
+msgid "Cancel"
+msgstr ""
