@@ -19,15 +19,15 @@ msgstr ""
 
 #: edx_xblock_scorm/scormxblock/scormxblock.py:57
 msgid "Display Name"
-msgstr ""
+msgstr "Назва завдання"
 
 #: edx_xblock_scorm/scormxblock/scormxblock.py:58
 msgid "Display name for this module"
-msgstr ""
+msgstr "Відображається на платформі"
 
 #: edx_xblock_scorm/scormxblock/scormxblock.py:63
 msgid "Upload scorm file"
-msgstr ""
+msgstr "Завантажити SCORM файл"
 
 #: edx_xblock_scorm/scormxblock/scormxblock.py:67
 msgid "Path to the index page in scorm file"
@@ -35,54 +35,54 @@ msgstr ""
 
 #: edx_xblock_scorm/scormxblock/scormxblock.py:99
 msgid "Scored"
-msgstr ""
+msgstr "Оцінено"
 
 #: edx_xblock_scorm/scormxblock/scormxblock.py:100
 msgid ""
 "Select False if this component will not receive a numerical score from the "
 "Scorm"
-msgstr ""
+msgstr "Оберіть \"False\", щоб завдання не оцінювалося"
 
 #: edx_xblock_scorm/scormxblock/scormxblock.py:109
 msgid "Display Width (px)"
-msgstr ""
+msgstr "Ширина (px)"
 
 #: edx_xblock_scorm/scormxblock/scormxblock.py:110
 msgid "Width of iframe, if empty, the default 100"
-msgstr ""
+msgstr "Ширина iframe (вікна)"
 
 #: edx_xblock_scorm/scormxblock/scormxblock.py:114
 msgid "Display Height (px)"
-msgstr ""
+msgstr "Висота (px)"
 
 #: edx_xblock_scorm/scormxblock/scormxblock.py:115
 msgid "Height of iframe"
-msgstr ""
+msgstr "Висота iframe (вікна)"
 
 #: edx_xblock_scorm/scormxblock/static/html/author_view.html:3
 msgid "Look in LMS"
-msgstr ""
+msgstr "Шукати на LMS"
 
 #: edx_xblock_scorm/scormxblock/static/html/scormxblock.html:8
 msgid "points"
-msgstr ""
+msgstr "Бали"
 
 #: edx_xblock_scorm/scormxblock/static/html/scormxblock.html:16
 msgid "Full screen"
-msgstr ""
+msgstr "Повноекранний режим"
 
 #: edx_xblock_scorm/scormxblock/static/html/scormxblock.html:19
 msgid "Exit full screen"
-msgstr ""
+msgstr "Вийти з повноекранного режиму "
 
 #: edx_xblock_scorm/scormxblock/static/html/studio.html:18
 msgid "Currently:"
-msgstr ""
+msgstr "Статус:"
 
 #: edx_xblock_scorm/scormxblock/static/html/studio.html:51
 msgid "Save"
-msgstr ""
+msgstr "Зберегти"
 
 #: edx_xblock_scorm/scormxblock/static/html/studio.html:54
 msgid "Cancel"
-msgstr ""
+msgstr "Відмінити"
