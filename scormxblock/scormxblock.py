@@ -1,3 +1,4 @@
+import time
 import json
 import hashlib
 import re
@@ -106,6 +107,7 @@ class ScormXBlock(XBlock):
         data = pkg_resources.resource_string(__name__, path)
         return data.decode('utf8')
 
+    @XBlock.supports("multi_device")
     def student_view(self, context=None):
         context_html = self.get_context_student()
         template = loader.render_django_template(
@@ -215,13 +217,16 @@ class ScormXBlock(XBlock):
 
     @XBlock.json_handler
     def scorm_set_value(self, data, suffix=''):
+        return self.set_value(data, suffix)
+
+    def set_value(self, data, suffix='', set_last_updated_time=True):
         context = {'result': 'success'}
         name = data.get('name')
 
         if name in ['cmi.core.lesson_status', 'cmi.completion_status']:
             self.lesson_status = data.get('value')
             if self.has_score and data.get('value') in ['completed', 'failed', 'passed']:
-                self.publish_grade()
+                self.publish_grade(set_last_updated_time)
                 context.update({"lesson_score": self.format_lesson_score})
 
         elif name == 'cmi.success_status':
@@ -229,19 +234,36 @@ class ScormXBlock(XBlock):
             if self.has_score:
                 if self.success_status == 'unknown':
                     self.lesson_score = 0
-                self.publish_grade()
+                self.publish_grade(set_last_updated_time)
                 context.update({"lesson_score": self.format_lesson_score})
         elif name in ['cmi.core.score.raw', 'cmi.score.raw'] and self.has_score:
             self.lesson_score = float(data.get('value', 0))/100.0
-            self.publish_grade()
+            self.publish_grade(set_last_updated_time)
             context.update({"lesson_score": self.format_lesson_score})
-        else:
-            self.data_scorm[name] = data.get('value', '')
 
+        self.data_scorm[name] = data.get('value', '')
         context.update({"completion_status": self.get_completion_status()})
         return context
 
-    def publish_grade(self):
+    @XBlock.json_handler
+    def scorm_get_values(self, data, suffix=''):
+        return self.data_scorm
+
+    @XBlock.json_handler
+    def scorm_set_values(self, data, suffix=''):
+        is_updated = False
+        if self.data_scorm.get('last_updated_time', 0) < data.get('last_updated_time', 0):
+            for datum in data.get('data'):
+                self.set_value(datum, suffix, set_last_updated_time=False)
+            self.data_scorm['last_updated_time'] = int(data.get('last_updated_time', 0))
+            is_updated = True
+        context = self.data_scorm
+        context.update({"is_updated": is_updated})
+        return context
+
+    def publish_grade(self, set_last_updated_time=True):
+        if set_last_updated_time:
+            self.data_scorm['last_updated_time'] = int(time.time())
         if self.lesson_status == 'failed' or (self.version_scorm == 'SCORM_2004'
                                               and self.success_status in ['failed', 'unknown']):
             self.runtime.publish(
@@ -368,9 +390,14 @@ class ScormXBlock(XBlock):
         Make sure to include `student_view_data=scormxblock` to URL params in the request.
         """
         if self.scorm_file and self.scorm_file_meta:
+
+            scorm_data = default_storage.url(self._file_storage_path())
+            if not scorm_data.startswith('http'):
+                scorm_data = '{}{}'.format(settings.LMS_ROOT_URL, scorm_data)
+
             return {
                 'last_modified': self.scorm_file_meta.get('last_updated', ''),
-                'scorm_data': default_storage.url(self._file_storage_path()),
+                'scorm_data': scorm_data,
                 'size': self.scorm_file_meta.get('size', 0),
                 'index_page': self.path_index_page,
             }
