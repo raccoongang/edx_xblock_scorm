@@ -95,3 +95,40 @@ msgstr "закінчено"
 
 msgid "passed"
 msgstr "закінчено"
+
+#: common/lib/xmodule/xmodule/x_module.py
+#, python-brace-format
+msgid ""
+"{display_name} is only accessible to enrolled learners. "
+"{sign_in} or {register}, and enroll in this course to view it."
+msgstr ""
+"{display_name} доступне для перегляду та виконання після {register}/{sign_in} "
+"на платформі."
+
+#: common/lib/xmodule/xmodule/x_module.py
+#, python-brace-format
+msgid ""
+"This content is only accessible to enrolled learners. "
+"{sign_in} or {register}, and enroll in this course to view it."
+msgstr ""
+"Цей контент доступний для перегляду та виконання після {register}/{sign_in} "
+"на платформі."
+
+msgid "Sign in link"
+msgstr "авторизації"
+
+msgid "register link"
+msgstr "реєстрації"
+
+msgid ""
+"{display_name} can only be viewed after {enroll} in a course."
+msgstr ""
+"{display_name} доступне для перегляду та виконання після {enroll} на курсі."
+
+msgid ""
+"This content can only be viewed after {enroll} in a course."
+msgstr ""
+"Цей контент доступний для перегляду та виконання після {enroll} на курсі."
+
+msgid "enrolling"
+msgstr "реєстрації"
