@@ -36,8 +36,6 @@ class FileIter(object):
     def __init__(self, _file, _type='application/octet-stream'):
         self._file = _file
         self.wrapper = lambda d: d
-        if _type.startswith('text'):
-            self.wrapper = lambda d: unicode(d, 'utf-8', 'replace')
 
     def __iter__(self):
         try:
@@ -334,10 +332,11 @@ class ScormXBlock(XBlock):
         self.scorm_file = os.path.join(self.folder_path, self.path_index_page)
 
     def get_completion_status(self):
+        _ = self.runtime.service(self, 'i18n').ugettext
         completion_status = self.lesson_status
         if self.version_scorm == 'SCORM_2004' and self.success_status != 'unknown':
             completion_status = self.success_status
-        return completion_status
+        return _(completion_status)
 
     def _file_storage_path(self):
         """
