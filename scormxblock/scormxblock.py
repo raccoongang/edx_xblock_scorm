@@ -36,8 +36,6 @@ class FileIter(object):
     def __init__(self, _file, _type='application/octet-stream'):
         self._file = _file
         self.wrapper = lambda d: d
-        if _type.startswith('text'):
-            self.wrapper = lambda d: unicode(d, 'utf-8', 'replace')
 
     def __iter__(self):
         try:
