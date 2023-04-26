@@ -26,6 +26,7 @@ setup(
     description='scormxblock XBlock',   # TODO: write a better description.
     packages=[
         'scormxblock',
+        'scorm_app',
     ],
     install_requires=[
         'XBlock',
@@ -33,7 +34,10 @@ setup(
     entry_points={
         'xblock.v1': [
             'scormxblock = scormxblock:ScormXBlock',
-        ]
+        ],
+        'lms.djangoapp': [
+            'scorm_app = scorm_app.apps:MobileScormSyncConfig',
+        ],
     },
     package_data=package_data("scormxblock", ["static", "public", "translations"]),
     license="Apache",
